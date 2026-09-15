@@ -1,0 +1,6 @@
+aws_region          = "us-east-1"
+project_name        = "oficina-mecanica"
+environment         = "production"
+kubernetes_version  = "1.33"
+node_instance_types = ["t3.small"]
+datadog_site         = "datadoghq.com"
