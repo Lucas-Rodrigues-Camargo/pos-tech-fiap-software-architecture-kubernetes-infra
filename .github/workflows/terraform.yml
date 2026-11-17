@@ -6,6 +6,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      confirm_apply:
+        description: 'Optional provisioning; keep false when using existing infrastructure'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -14,7 +19,7 @@ permissions:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'push' && 'production' || null }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_apply && 'production' || null }}
     env:
       TF_VAR_datadog_api_key: ${{ secrets.DATADOG_API_KEY }}
       TF_VAR_datadog_app_key: ${{ secrets.DATADOG_APP_KEY }}
@@ -24,15 +29,17 @@ jobs:
         with:
           terraform_version: 1.11.4
       - uses: aws-actions/configure-aws-credentials@v5
+        if: github.event_name == 'workflow_dispatch' && inputs.confirm_apply
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: us-east-1
       - run: terraform fmt -check -recursive
-      - run: terraform init
+      - run: terraform init -backend=false
       - run: terraform validate
       - uses: aquasecurity/tfsec-action@v1.0.3
         with:
           soft_fail: false
       - run: terraform plan -out=tfplan
-      - if: github.event_name == 'push'
+        if: github.event_name == 'workflow_dispatch' && inputs.confirm_apply
+      - if: github.event_name == 'workflow_dispatch' && inputs.confirm_apply
         run: terraform apply -auto-approve tfplan
