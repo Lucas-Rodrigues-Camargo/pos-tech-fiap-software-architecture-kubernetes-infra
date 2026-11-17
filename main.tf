@@ -143,6 +143,8 @@ resource "helm_release" "datadog" {
     { name = "datadog.logs.enabled", value = "true" },
     { name = "datadog.logs.containerCollectAll", value = "true" },
     { name = "datadog.apm.portEnabled", value = "true" },
+    { name = "datadog.otlp.receiver.protocols.grpc.enabled", value = "true" },
+    { name = "datadog.otlp.receiver.protocols.grpc.endpoint", value = "0.0.0.0:4317" },
     { name = "clusterAgent.enabled", value = "true" },
     { name = "datadog.kubeStateMetricsEnabled", value = "true" }
   ]
